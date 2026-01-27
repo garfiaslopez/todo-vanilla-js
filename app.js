@@ -27,6 +27,16 @@ addButtonElement.addEventListener("click", () => {
   textNode.textContent = taskDescription
   taskNode.appendChild(textNode)
 
+  // li -> Button (Editar)
+  const editButtonNode = document.createElement("button")
+  editButtonNode.textContent = "Editar"
+  taskNode.appendChild(editButtonNode)
+
+  // li -> Button (Eliminar)
+  const removalButtonNode = document.createElement("button")
+  removalButtonNode.textContent = "Eliminar"
+  taskNode.appendChild(removalButtonNode)
+
   // ul -> li
   taskListElement.appendChild(taskNode)
 });
