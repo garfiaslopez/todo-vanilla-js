@@ -1,62 +1,81 @@
-// 1. Saber cuando el usuario dio click agregar.
-// 2. Recuperar el valor del input.
-// 3. Se guarda el valor en el arreglo.
-// 4. Actualizar la lista de Tasks en el DOM. 
+// 1. PERSISTENCIA: Intentamos recuperar datos previos de la memoria del navegador (localStorage).
+// localStorage devuelve un String, por lo que usamos JSON.parse para convertir ese texto en un Objeto de JS.
+// Si no hay datos (primera vez que se usa), inicializamos 'todos' como un objeto vacío {}.
+const storageData = localStorage.getItem("misTareas");
+const todos = storageData ? JSON.parse(storageData) : {};
 
-// Array donde guardar los tasks que se deberia cargar del Local Storagee
-// Usamos JSON.parse para convertir el string guardado de vuelta a un Array, este proceso entiendo
-//que es necesaria porque el navegador web no leeria el objeto como tal sino que solo una cadena o String...
-//z no estoy seguro pero creo que funcionaria un concepto parecedo cuando se trata de guardar en local storage
+// 2. REFERENCIAS AL DOM: Obtenemos los elementos del HTML para poder manipularlos.
+const addButtonElement = document.getElementById("addTaskButton");
+const inputElement = document.getElementById("taskInput");
+const taskListElement = document.getElementById("mainList");
 
-const todos = JSON.parse(localStorage.getItem("mis_tareas")) || [];
+/**
+ * Función encargada de crear físicamente los elementos en el HTML (Nodos).
+ * @param {string} id - La llave de la tarea (ej: "Tarea1").
+ * @param {object} taskObject - El objeto con los detalles de la tarea.
+ */
+function renderTask(id, taskObject) {
+  // Creamos el contenedor de la lista <li>
+  const taskNode = document.createElement("li");
 
-const addButtonElement = document.getElementById("addTaskButton")
-const inputElement = document.getElementById("taskInput")
-const taskListElement = document.getElementById("mainList")
+  // Creamos el Checkbox y su estado guardado (Realizada: true/false)
+  const checkMarkNode = document.createElement("input");
+  checkMarkNode.type = "checkbox";
+  checkMarkNode.checked = taskObject.Realizada; 
+  taskNode.appendChild(checkMarkNode);
 
-// FUNCIÓN DE AYUDA: Encapsula tu lógica original para reutilizarla
-function renderizarTarea(taskDescription) {
-  const taskNode = document.createElement("li") 
+  // Creamos el texto de la tarea combinando el Título y la Fecha
+  const textNode = document.createElement("span");
+  // Accedemos a "Fecha limite" con corchetes porque el nombre tiene un espacio
+  textNode.textContent = taskObject.Titulo + " - " + taskObject["Fecha limite"];
+  taskNode.appendChild(textNode);
 
-  const checkMarkNode = document.createElement("input")
-  checkMarkNode.type = "checkbox"
-  taskNode.appendChild(checkMarkNode)
-  
-  const textNode = document.createElement("span")
-  textNode.textContent = taskDescription
-  taskNode.appendChild(textNode)
+  // Botones de acción (Edit/Delete) creados como nodos independientes
+  const editButtonNode = document.createElement("button");
+  editButtonNode.textContent = "Edit";
+  taskNode.appendChild(editButtonNode);
 
-  const editButtonNode = document.createElement("button")
-  editButtonNode.textContent = "Edit"
-  taskNode.appendChild(editButtonNode)
+  const removalButtonNode = document.createElement("button");
+  removalButtonNode.textContent = "Delete";
+  taskNode.appendChild(removalButtonNode);
 
-  const removalButtonNode = document.createElement("button")
-  removalButtonNode.textContent = "Delete"
-  taskNode.appendChild(removalButtonNode)
-
-  taskListElement.appendChild(taskNode)
+  // Inyectamos el <li> completo dentro de nuestra lista <ul> en el HTML
+  taskListElement.appendChild(taskNode);
 }
 
-// RECUPERAR: Al cargar la página, dibujamos lo que ya estaba en localStorage
-// forEach recorre esa información guardada en todos de forma local para dibujar las tareas automáticamente.
-todos.forEach(tarea => renderizarTarea(tarea));
+// 3. CARGA INICIAL: Recorremos el objeto 'todos' para dibujar las tareas guardadas al recargar la página.
+// Usamos for...each esto po que es la forma correcta de iterar sobre las llaves de un objeto.
+for (const id in todos) {
+  renderTask(id, todos[id]);
+}
 
+// 4. EVENTO CLICK: Se añadi un evento para detectar el "click" en el boton "add" 
+// La Lógica para agregar nuevas tareas basicamente.
 addButtonElement.addEventListener("click", () => {
   const taskDescription = inputElement.value;
-  if(!taskDescription) return; // Evitariamos una tarea vacia
-
-  todos.push(taskDescription)
   
-  // PERSISTIR seria literalmente Guardar el array actualizado convirtiéndolo a String
-  localStorage.setItem("mis_tareas", JSON.stringify(todos));
+  // Validación simple para no agregar tareas vacías
+  if (!taskDescription) return;
 
-  // aquí actulizamos el dom 
-  renderizarTarea(taskDescription);
+  // Generamos un ID único basado en la cantidad de llaves que ya existen
+  const nuevoId = "Tarea" + (Object.keys(todos).length + 1);
+  
+  // Creamos la estructura del objeto
+  const nuevaTarea = {
+    "Titulo": taskDescription,
+    "Realizada": false,
+    "Fecha limite": "12/12/2026"
+  };
+
+  // Guardamos la nueva tarea en nuestro objeto 'todos' usando la llave generada
+  todos[nuevoId] = nuevaTarea;
+
+  // Actualizamos localStorage convirtiendo el objeto a String (JSON.stringify)
+  localStorage.setItem("misTareas", JSON.stringify(todos));
+
+  // Dibujamos la tarea inmediatamente en la interfaz
+  renderTask(nuevoId, nuevaTarea);
+
+  // Limpiamos el campo de texto para la siguiente tarea
   inputElement.value = "";
 });
-
-//me faltaria integrar la funcion de la fecha y hora y si la funcion esta marcada como cumplida o no
-
-
-
-
