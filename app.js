@@ -1,8 +1,27 @@
+
+// TAREA
+/*
+1. AGREGAR FECHAS
+    - INVESTIGAR DATE() y FORMAT
+2. PERSISTIR CHECKMARK
+    - EDITAR EL ARRAY Y USAR LOCALSTORAGE
+3. 4 BOTONES (FILTROS) = ALL, ACTIVE, COMPLETED, CLEAR COMPLETED.
+    - 3 FILTROS, 1 ACCION DE BORRAR TODOS LOS COMPLETADOS.
+4. STRING DE HASTA ABAJO, CONTABILIZAR LOS QUE FALTAN 
+    - CONTAR CUANTOS TASKS NO TIENEN CHECKMARK.
+*/
+
+
+
 // 1. PERSISTENCIA: Intentamos recuperar datos previos de la memoria del navegador (localStorage).
 // localStorage devuelve un String, por lo que usamos JSON.parse para convertir ese texto en un Objeto de JS.
 // Si no hay datos (primera vez que se usa), inicializamos 'todos' como un objeto vacío {}.
 const storageData = localStorage.getItem("misTareas");
+
+// Ternary operator = CONDITION ? TRUE : FALSE
 const todos = storageData ? JSON.parse(storageData) : {};
+// const todos = JSON.parse(localStorage.getItem("mis_tareas")) || [];
+
 
 // 2. REFERENCIAS AL DOM: Obtenemos los elementos del HTML para poder manipularlos.
 const addButtonElement = document.getElementById("addTaskButton");
@@ -15,14 +34,24 @@ const taskListElement = document.getElementById("mainList");
  * @param {object} taskObject - El objeto con los detalles de la tarea.
  */
 function renderTask(id, taskObject) {
+
+  console.log(taskObject);
+
   // Creamos el contenedor de la lista <li>
-  const taskNode = document.createElement("li");
+  const taskNode = document.createElement("li"); // VARIABLE DE CLASSE TIPO NODE
+  // VARIABLE -> Direccion de memoria. 0x01000AB
 
   // Creamos el Checkbox y su estado guardado (Realizada: true/false)
-  const checkMarkNode = document.createElement("input");
+  const checkMarkNode = document.createElement("input"); // VARIABLE DE TIPO NODO
   checkMarkNode.type = "checkbox";
   checkMarkNode.checked = taskObject.Realizada; 
-  taskNode.appendChild(checkMarkNode);
+
+  checkMarkNode.addEventListener("click", () => {
+    console.log("CHECKMARK");
+    // editar y persistir el todo. 
+  });
+  
+  taskNode.appendChild(checkMarkNode); // INTRODUCIRLO AL ARBOL HTML (DOM)
 
   // Creamos el texto de la tarea combinando el Título y la Fecha
   const textNode = document.createElement("span");
@@ -31,13 +60,27 @@ function renderTask(id, taskObject) {
   taskNode.appendChild(textNode);
 
   // Botones de acción (Edit/Delete) creados como nodos independientes
-  const editButtonNode = document.createElement("button");
+  const editButtonNode = document.createElement("button"); // VARABLE TIIPO NODO
   editButtonNode.textContent = "Edit";
   taskNode.appendChild(editButtonNode);
+  editButtonNode.addEventListener("click", () => {
+    console.log("EDITAR")
+    textNode.textContent = inputElement.value
+  });
 
   const removalButtonNode = document.createElement("button");
   removalButtonNode.textContent = "Delete";
   taskNode.appendChild(removalButtonNode);
+
+  removalButtonNode.addEventListener("click", () => {
+    console.log("BORRAR NODO - DESDE DELETE NODE.")
+    console.log(taskNode);
+    taskListElement.removeChild(taskNode);
+
+    // Borrarlo del array y persistir el cambio
+    delete todos[id]
+    localStorage.setItem("misTareas", JSON.stringify(todos));
+  });
 
   // Inyectamos el <li> completo dentro de nuestra lista <ul> en el HTML
   taskListElement.appendChild(taskNode);
@@ -66,6 +109,8 @@ addButtonElement.addEventListener("click", () => {
     "Realizada": false,
     "Fecha limite": "12/12/2026"
   };
+
+
 
   // Guardamos la nueva tarea en nuestro objeto 'todos' usando la llave generada
   todos[nuevoId] = nuevaTarea;
