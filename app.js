@@ -1,14 +1,32 @@
+function generarFecha(){
+  const fecha = new Date();
+  const anio = fecha.getFullYear();
+  //.padStart() rellena una cadena de texto por el inicio hasta que tenga una longitud específica.
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  //string.padStart(longitudFinal, relleno)
+  //longitudFinal → cuántos caracteres quieres en total
+  //relleno → con qué carácter(s) se rellena (opcional, por defecto es espacio)
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return dia + '/' + mes + '/' +anio;
+}
 
+function elementosRestantes(){
+  const cantidadTotal = Object.keys(todos).length;
+  console.log("Tienes un total de: " + cantidadTotal + " tareas.");
+  return elementosActivosRestantes.textContent =  cantidadTotal + ' items left';
+}
 // TAREA
 /*
 1. AGREGAR FECHAS
-    - INVESTIGAR DATE() y FORMAT
+    - INVESTIGAR DATE() y FORMAT ✅
 2. PERSISTIR CHECKMARK
-    - EDITAR EL ARRAY Y USAR LOCALSTORAGE
+    - EDITAR EL ARRAY Y USAR LOCALSTORAGE ✅
 3. 4 BOTONES (FILTROS) = ALL, ACTIVE, COMPLETED, CLEAR COMPLETED.
-    - 3 FILTROS, 1 ACCION DE BORRAR TODOS LOS COMPLETADOS.
+    - 3 FILTROS, 1 ACCION DE BORRAR TODOS LOS COMPLETADOS. ✅
 4. STRING DE HASTA ABAJO, CONTABILIZAR LOS QUE FALTAN 
-    - CONTAR CUANTOS TASKS NO TIENEN CHECKMARK.
+    - CONTAR CUANTOS TASKS NO TIENEN CHECKMARK(eliminados por completo ---> ojo). ✅
+5. CORRECION DE FUNCIONAMIENTO BOTON EDITAR
+    -MODIFICAR EN LOCALSTORAGE ✅
 */
 
 
@@ -27,6 +45,10 @@ const todos = storageData ? JSON.parse(storageData) : {};
 const addButtonElement = document.getElementById("addTaskButton");
 const inputElement = document.getElementById("taskInput");
 const taskListElement = document.getElementById("mainList");
+const filterCompleted = document.getElementById("filtroCompletadosButton");
+const filterActive = document.getElementById("filtroActivosButton");
+const filterAll = document.getElementById("filtroTodosButton");
+const elementosActivosRestantes = document.getElementById("remainingLabel");
 
 /**
  * Función encargada de crear físicamente los elementos en el HTML (Nodos).
@@ -48,6 +70,11 @@ function renderTask(id, taskObject) {
 
   checkMarkNode.addEventListener("click", () => {
     console.log("CHECKMARK");
+    // 1. Sincronizamos el objeto con lo que el usuario ve en el checkbox
+    taskObject.Realizada = checkMarkNode.checked;
+    // 2. Guardamos TODO el objeto 'todos' actualizado
+    localStorage.setItem("misTareas", JSON.stringify(todos));
+    console.log(`Estado actualizado para ${id}: ${taskObject.Realizada}`);
     // editar y persistir el todo. 
   });
   
@@ -65,7 +92,9 @@ function renderTask(id, taskObject) {
   taskNode.appendChild(editButtonNode);
   editButtonNode.addEventListener("click", () => {
     console.log("EDITAR")
-    textNode.textContent = inputElement.value
+    textNode.textContent = inputElement.value + " - " + taskObject["Fecha limite"];
+    taskObject.Titulo = inputElement.value;
+    localStorage.setItem("misTareas", JSON.stringify(todos));
   });
 
   const removalButtonNode = document.createElement("button");
@@ -76,10 +105,35 @@ function renderTask(id, taskObject) {
     console.log("BORRAR NODO - DESDE DELETE NODE.")
     console.log(taskNode);
     taskListElement.removeChild(taskNode);
-
+    
     // Borrarlo del array y persistir el cambio
     delete todos[id]
     localStorage.setItem("misTareas", JSON.stringify(todos));
+    elementosRestantes();
+  });
+  //Existen detalles -----> ojo
+  filterCompleted.addEventListener("click", () => {
+    //Borrar todos
+    taskListElement.removeChild(taskNode);
+    //pintar los completados
+    for (const id in todos) {
+      if(taskObject.Realizada){
+        taskListElement.appendChild(taskNode);
+      }
+    }
+  });
+  // Existen detalles ----> ojo
+  filterActive.addEventListener("click", () => {
+    taskListElement.removeChild(taskNode);
+    for (const id in todos) {
+      if(!taskObject.Realizada){
+        taskListElement.appendChild(taskNode);
+      }
+    }
+  });
+
+  filterAll.addEventListener("click", () => {
+    taskListElement.appendChild(taskNode);
   });
 
   // Inyectamos el <li> completo dentro de nuestra lista <ul> en el HTML
@@ -91,11 +145,13 @@ function renderTask(id, taskObject) {
 for (const id in todos) {
   renderTask(id, todos[id]);
 }
+elementosRestantes();
 
 // 4. EVENTO CLICK: Se añadi un evento para detectar el "click" en el boton "add" 
 // La Lógica para agregar nuevas tareas basicamente.
 addButtonElement.addEventListener("click", () => {
   const taskDescription = inputElement.value;
+  const fechaTarea = generarFecha();
   
   // Validación simple para no agregar tareas vacías
   if (!taskDescription) return;
@@ -107,7 +163,7 @@ addButtonElement.addEventListener("click", () => {
   const nuevaTarea = {
     "Titulo": taskDescription,
     "Realizada": false,
-    "Fecha limite": "12/12/2026"
+    "Fecha limite": fechaTarea
   };
 
 
@@ -123,4 +179,5 @@ addButtonElement.addEventListener("click", () => {
 
   // Limpiamos el campo de texto para la siguiente tarea
   inputElement.value = "";
+  elementosRestantes();  
 });
