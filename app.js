@@ -1,14 +1,32 @@
+function generarFecha(){
+  const fecha = new Date();
+  const anio = fecha.getFullYear();
+  //.padStart() rellena una cadena de texto por el inicio hasta que tenga una longitud específica.
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  //string.padStart(longitudFinal, relleno)
+  //longitudFinal → cuántos caracteres quieres en total
+  //relleno → con qué carácter(s) se rellena (opcional, por defecto es espacio)
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return dia + '/' + mes + '/' +anio;
+}
 
+function elementosRestantes(){
+  const cantidadTotal = Object.keys(todos).length;
+  console.log("Tienes un total de: " + cantidadTotal + " tareas.");
+  return elementosActivosRestantes.textContent =  cantidadTotal + ' items left';
+}
 // TAREA
 /*
 1. AGREGAR FECHAS
-    - INVESTIGAR DATE() y FORMAT
+    - INVESTIGAR DATE() y FORMAT ✅
 2. PERSISTIR CHECKMARK
-    - EDITAR EL ARRAY Y USAR LOCALSTORAGE
+    - EDITAR EL ARRAY Y USAR LOCALSTORAGE ✅
 3. 4 BOTONES (FILTROS) = ALL, ACTIVE, COMPLETED, CLEAR COMPLETED.
-    - 3 FILTROS, 1 ACCION DE BORRAR TODOS LOS COMPLETADOS.
-4. STRING DE HASTA ABAJO, CONTABILIZAR LOS QUE FALTAN 
-    - CONTAR CUANTOS TASKS NO TIENEN CHECKMARK.
+    - 3 FILTROS, 1 ACCION DE BORRAR TODOS LOS COMPLETADOS. ✅
+4. STRING DE HASTA ABAJO, CONTABILIZAR LOS QUE FALTAN
+    - CONTAR CUANTOS TASKS NO TIENEN CHECKMARK(eliminados por completo ---> ojo). ✅
+5. CORRECION DE FUNCIONAMIENTO BOTON EDITAR
+    -MODIFICAR EN LOCALSTORAGE ✅
 */
 
 
@@ -26,7 +44,7 @@ const todos = storageData ? JSON.parse(storageData) : {};
 // 2. REFERENCIAS AL DOM: Obtenemos los elementos del HTML para poder manipularlos.
 const addButtonElement = document.getElementById("addTaskButton");
 const inputElement = document.getElementById("taskInput");
-const taskListElement = document.getElementById("mainList"); 
+const taskListElement = document.getElementById("mainList");
 const filterCompleted = document.getElementById("filtroCompletadosButton");
 const filterActive = document.getElementById("filtroActivosButton");
 const filterAll = document.getElementById("filtroTodosButton");
@@ -74,18 +92,14 @@ function renderTask(id, taskObject) {
   // Creamos el Checkbox y su estado guardado (Realizada: true/false)
   const checkMarkNode = document.createElement("input"); // VARIABLE DE TIPO NODO
   checkMarkNode.type = "checkbox";
-  checkMarkNode.checked = taskObject.Realizada; 
+  checkMarkNode.checked = taskObject.Realizada;
 
-  //111//checkMarkNode.addEventListener("click", () => {
-    //console.log("CHECKMARK");
-
-    checkMarkNode.addEventListener("change", () => {
-  todos[id].Realizada = checkMarkNode.checked;
-  localStorage.setItem("misTareas", JSON.stringify(todos));
-  actualizarContador();
-    // editar y persistir el todo. 
+  checkMarkNode.addEventListener("change", () => {
+    todos[id].Realizada = checkMarkNode.checked;
+    localStorage.setItem("misTareas", JSON.stringify(todos));
+    actualizarContador();
   });
-  
+
   taskNode.appendChild(checkMarkNode); // INTRODUCIRLO AL ARBOL HTML (DOM)
 
   // Creamos el texto de la tarea combinando el Título y la Fecha
@@ -98,17 +112,15 @@ function renderTask(id, taskObject) {
   const editButtonNode = document.createElement("button"); // VARABLE TIIPO NODO
   editButtonNode.textContent = "Edit";
   taskNode.appendChild(editButtonNode);
-  //222//editButtonNode.addEventListener("click", () => {
-    //console.log("EDITAR")
-    //textNode.textContent = inputElement.value
-    editButtonNode.addEventListener("click", () => {
-  if (!inputElement.value) return;
 
-  todos[id].Titulo = inputElement.value;
-  localStorage.setItem("misTareas", JSON.stringify(todos));
+  editButtonNode.addEventListener("click", () => {
+    if (!inputElement.value) return;
 
-  textNode.textContent = `${todos[id].Titulo} - ${todos[id]["Fecha limite"]}`;
-  inputElement.value = "";
+    todos[id].Titulo = inputElement.value;
+    localStorage.setItem("misTareas", JSON.stringify(todos));
+
+    textNode.textContent = `${todos[id].Titulo} - ${todos[id]["Fecha limite"]}`;
+    inputElement.value = "";
   });
 
   const removalButtonNode = document.createElement("button");
@@ -132,17 +144,16 @@ function renderTask(id, taskObject) {
 
 // 3. CARGA INICIAL: Recorremos el objeto 'todos' para dibujar las tareas guardadas al recargar la página.
 // Usamos for...each esto po que es la forma correcta de iterar sobre las llaves de un objeto.
-//555//for (const id in todos) {
-  //555///renderTask(id, todos[id]);
-  renderFilteredTasks("all");
+renderFilteredTasks("all");
 actualizarContador();
 
 
-// 4. EVENTO CLICK: Se añadi un evento para detectar el "click" en el boton "add" 
+// 4. EVENTO CLICK: Se añadi un evento para detectar el "click" en el boton "add"
 // La Lógica para agregar nuevas tareas basicamente.
 addButtonElement.addEventListener("click", () => {
   const taskDescription = inputElement.value;
-  
+  const fechaTarea = generarFecha();
+
   // Validación simple para no agregar tareas vacías
   if (!taskDescription) return;
 
@@ -151,16 +162,11 @@ addButtonElement.addEventListener("click", () => {
   const nuevoId = "Tarea" + Date.now();
 
   // Creamos la estructura del objeto
-  const fechaActual = new Date().toLocaleDateString("es-ES");
-
-const nuevaTarea = {
-  "Titulo": taskDescription,
-  "Realizada": false,
-  "Fecha limite": fechaActual
-};
-
-
-
+  const nuevaTarea = {
+    "Titulo": taskDescription,
+    "Realizada": false,
+    "Fecha limite": fechaTarea
+  };
 
   // Guardamos la nueva tarea en nuestro objeto 'todos' usando la llave generada
   todos[nuevoId] = nuevaTarea;
@@ -173,6 +179,7 @@ const nuevaTarea = {
 
   // Limpiamos el campo de texto para la siguiente tarea
   inputElement.value = "";
+  elementosRestantes();
 });
 
  filterAll.addEventListener("click", () => {
