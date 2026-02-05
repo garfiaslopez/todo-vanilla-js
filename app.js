@@ -1,16 +1,18 @@
-function generarFecha(){
+function getNowDateString() {
   const fecha = new Date();
   const anio = fecha.getFullYear();
+
   //.padStart() rellena una cadena de texto por el inicio hasta que tenga una longitud específica.
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+
   //string.padStart(longitudFinal, relleno)
   //longitudFinal → cuántos caracteres quieres en total
   //relleno → con qué carácter(s) se rellena (opcional, por defecto es espacio)
   const dia = String(fecha.getDate()).padStart(2, '0');
-  return dia + '/' + mes + '/' +anio;
+  return dia + '/' + mes + '/' + anio;
 }
 
-function elementosRestantes(){
+function elementosRestantes() {
   const cantidadTotal = Object.keys(todos).length;
   console.log("Tienes un total de: " + cantidadTotal + " tareas.");
   return elementosActivosRestantes.textContent =  cantidadTotal + ' items left';
